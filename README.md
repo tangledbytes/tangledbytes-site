@@ -1,4 +1,4 @@
-# Site for Notes
+# Everything Site for me
 I have had multiple sites in the past like:
 - Sagacious Dev main site
 - Sagacious Dev blog site
