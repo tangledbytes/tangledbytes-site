@@ -37,7 +37,7 @@ menu:
     url: /feed.xml
     weight: 2
   - name: GitHub
-    url: https://github.com/utkarsh-pro
+    url: https://github.com/tangledbytes
     weight: 5
   - name: LinkedIn
     url: https://www.linkedin.com/in/utkarsh-srivastava-2310/

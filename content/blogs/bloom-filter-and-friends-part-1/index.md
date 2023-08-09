@@ -8,7 +8,7 @@ tags: ["golang", "database", "data structure"]
 ---
 
 I recently started exploring databases and storage engines more seriously. As a result of my exploration, I started working on a
-side project called [USE](https://github.com/utkarsh-pro/use). USE's one of the storage engine uses very basic append only log
+side project called [USE](https://github.com/tangledbytes/use). USE's one of the storage engine uses very basic append only log
 for storing the data on the disk. This means that the `Read(key)` queries are excruciatingly slow as they have to iterate over
 the entire log to find the value for the given key. I wanted to minimise the number of disk reads for the `Read(key)` queries especially
 for the cases when the `key` is not even present.
