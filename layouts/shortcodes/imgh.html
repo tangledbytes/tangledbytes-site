@@ -1,0 +1,49 @@
+{{- $src := $.Page.Resources.GetMatch (.Get "src") -}}
+{{- $respSizes := .Get "breakpoints" | default (slice "320" "640" "960" "1280" "1600" "1920") -}}
+{{- $alt := .Get "alt" -}}
+{{- $imgClass := .Get "imgClass" | default "component-img" -}}
+{{- $dataSizes := .Get "sizes" | default "(min-width: calc(840px + 1rem + 1rem)) calc(840px + 1rem + 1rem), 100vw" -}}
+
+{{- $LQIP_img := $src.Resize "20x jpg" -}}
+{{- $LQIP_b64 := $LQIP_img.Content | base64Encode -}}
+{{- $lqipStyle := printf "%s%s%s" "background: url(data:image/jpeg;base64," $LQIP_b64 "); background-size: cover; background-repeat: no-repeat; background-position: 50%" -}}
+{{- $actualImg := $src.Resize "840x jpg" -}}
+{{- $imgBd5 := md5 $src -}}
+<style>
+	.imgB-{{ $imgBd5 }} { {{ $lqipStyle | safeCSS }} }
+</style>
+<div class="relative imgB-{{ $imgBd5 }}">
+	<picture>
+		<source
+			type="image/webp"
+			srcset="
+			{{- with $respSizes -}}
+				{{- range $i, $e := . -}}
+					{{- if ge $src.Width . -}}
+						{{- if $i }}, {{ end -}}{{- ($src.Resize (printf "%sx%s" . " webp") ).RelPermalink }} {{ . }}w
+					{{- end -}}
+				{{- end -}}
+			{{- end -}}"
+			sizes="{{ $dataSizes }}"
+		/>
+		<source
+			type="image/jpeg"
+			srcset="
+			{{- with $respSizes -}}
+				{{- range $i, $e := . -}}
+					{{- if ge $src.Width . -}}
+						{{- if $i }}, {{ end -}}{{- ($src.Resize (printf "%sx%s" . " jpg") ).RelPermalink }} {{ . }}w
+					{{- end -}}
+				{{- end -}}
+			{{- end -}}"
+			sizes="{{ $dataSizes }}"
+		/>
+		<img class="{{ $imgClass }}"
+			src="{{ $actualImg.RelPermalink }}"
+			width="{{ $src.Width }}"
+			height="{{ $src.Height }}"
+			alt="{{ $alt }}"
+			loading="lazy"
+		/>
+	</picture>
+</div>

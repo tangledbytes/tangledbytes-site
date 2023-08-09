@@ -1,0 +1,12 @@
+.component-comment {
+	padding: 0.15rem 0.2rem;
+	border-bottom: 1px solid rgb(255, 213, 0);
+	background-color: $color-light-yellow;
+	font-size: 85%;
+}
+
+.component-comment__icon {
+	margin-right: 0.2rem;
+	width: 0.85rem;
+	display: inline-block;
+}

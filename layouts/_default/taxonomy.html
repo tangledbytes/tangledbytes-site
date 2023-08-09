@@ -1,0 +1,18 @@
+{{ define "main" }}
+  <section>
+    <header>
+      <h1 style="margin-bottom: 0;">
+        <span>#</span>{{ .Title | urlize }}
+      </h1>
+      <div class="component-subtle-text" style="margin-bottom: 2rem;">
+        <div>
+          Found
+          <strong>{{ len .Pages }}</strong>
+          {{ cond (eq (len .Pages) 1) "item" "items" }} tagged with
+          <strong><span>#</span>{{ .Title | urlize }}</strong>.
+        </div>
+      </div>
+    </header>
+    {{ partial "summary-list" .Pages }}
+  </section>
+{{ end }}

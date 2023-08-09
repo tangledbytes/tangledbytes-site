@@ -1,0 +1,44 @@
+.site-header {
+	margin: 1rem 0 5rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1rem 0;
+	background-color: transparent;
+	backdrop-filter: saturate(180%) blur(1rem);
+	position: sticky;
+	top: 0;
+	left: 0;
+	z-index: 10000;
+}
+
+.site-header-content {
+	cursor: pointer;
+	font-size: 14px;
+}
+.site-header-content > a {
+	display: inline-block;
+}
+
+.site-main {
+	margin: 1rem 0;
+	min-height: calc(100vh - 5rem - 1rem - 1rem - 2rem - 8rem);
+}
+
+.site-footer {
+	font-size: 0.75rem;
+	color: #aeaeb2;
+	text-align: center;
+}
+
+.site-footer ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	justify-content: center;
+}
+
+.site-footer ul li {
+	margin: 0 0.5rem;
+}

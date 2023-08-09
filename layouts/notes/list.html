@@ -1,0 +1,7 @@
+{{ define "main" }}
+<h1>Notes</h1>
+<p>These are some raw notes that I take and store here. I usually take notes in logseq so I plan to either replace this section with a logseq graph or will port those here.</p>
+<p>NOTE: These notes are NOT blogs. They are raw and not really intended for others to consume.</p>
+{{ $notes := where .Site.RegularPages "Section" "notes" }}
+{{ partial "summary-list" $notes }}
+{{ end }}

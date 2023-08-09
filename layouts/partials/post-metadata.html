@@ -1,0 +1,13 @@
+<ul>
+  {{ with .Params.canonical }}
+    <li>
+      <span>Link</span>
+    </li>
+  {{ end }}
+  <li>
+    <time datetime="{{ .Date.Format .Site.Params.timeFormatRFC3339 }}">
+      {{- .Date.Format .Site.Params.timeFormatDefault -}}
+    </time>
+  </li>
+  <li>{{ .ReadingTime }} min read</li>
+</ul>

@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: {{ printf "%ssitemap.xml" .Site.BaseURL }}

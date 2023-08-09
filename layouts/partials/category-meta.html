@@ -1,0 +1,13 @@
+{{ with .Params.tags }}
+  <ul class="component-hlist">
+    {{ range . }}
+      <li data-pagefind-filter="Tag">
+        <a href="/tags/{{ . | urlize }}/" class="component-linktext">
+          <span>#</span>
+          {{- . | lower | urlize -}}
+        </a>
+      </li>
+    {{ end }}
+  </ul>
+{{ end }}
+

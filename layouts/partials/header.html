@@ -1,0 +1,18 @@
+{{ $current := . }}
+<header class="site-header">
+  <div class="site-header-left site-header-content">
+    <a href="/">Tangled Bytes</a>
+  </div>
+  <div class="site-header-right site-header-content">
+    <ul class="component-hlist">
+      {{ range .Site.Menus.main }}
+      {{ $active := or ($current.IsMenuCurrent "nav" .) ($current.HasMenuCurrent "nav" .) }}
+      {{ $active = or $active (eq .Name $current.Title) }}
+      <li>
+        <a href="{{ .URL }}">{{ .Name }}</a>
+      </li>
+      {{ end }}
+    </ul>
+  </div>
+</header>
+

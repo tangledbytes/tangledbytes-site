@@ -1,0 +1,18 @@
+{{ $current := . }}
+<footer class="site-footer">
+  <nav>
+    <ul>
+    </ul>
+    <ul>
+      {{ range .Site.Menus.footer }}
+        {{ $active := or ($current.IsMenuCurrent "nav" .) ($current.HasMenuCurrent "nav" .) }}
+        {{ $active = or $active (eq .Name $current.Title) }}
+        <li>
+          <a href="{{ .URL }}">{{ .Name }}</a>
+        </li>
+      {{ end }}
+    </ul>
+  </nav>
+  <p>&copy;{{ now.Format "2006" }} {{ .Site.Params.Author.Name }}</p>
+</footer>
+

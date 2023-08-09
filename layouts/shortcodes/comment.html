@@ -1,0 +1,10 @@
+{{- $comment := .Get 0 | default "" -}}
+{{- $icon := .Get 1 | default "pencil.svg" -}}
+<span title="Comment: {{ $comment }}" class="component-comment" >
+	<span class="component-comment__icon">
+		{{ partial (printf "svgs/%s" $icon) . }}
+	</span>
+	<span>
+		{{ $comment | markdownify }}
+	</span>
+</span>

@@ -1,0 +1,12 @@
+<li>
+  <a href="{{ .RelPermalink }}">
+    <span class="component-linktext">
+      {{ .Title | title }}
+    </span
+    >
+    <time datetime="{{ .Date.Format .Site.Params.timeFormatRFC3339 }}" class="component-datetime">
+      {{- .Date.Format .Site.Params.timeFormatShort -}}
+    </time>
+  </a>
+</li>
+

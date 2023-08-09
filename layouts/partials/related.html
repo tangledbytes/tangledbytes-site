@@ -1,0 +1,7 @@
+{{ $notes := where (where $.Site.RegularPages "Section" "blogs") ".Params.title" "!=" .Title }}
+<aside style="margin-top: 5rem;" data-pagefind-ignore="all">
+  <header>
+    <h2>Keep Reading</h2>
+  </header>
+  {{ partial "summary-list" $notes }}
+</aside>

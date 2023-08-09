@@ -1,0 +1,38 @@
+{{ define "main" }}
+  <article class="site-notes-content-container" data-pagefind-body>
+    <header>
+      <h1 class="site-notes-title">{{ .Title | title }}</h1>
+      <div class="site-notes-meta" data-pagefind-ignore="index">
+        <div>
+          Written on  
+          <time data-pagefind-meta="date" datetime="{{ .Date.Format .Site.Params.timeFormatRFC3339 }}">
+            {{- .Date.Format .Site.Params.timeFormatDefault -}}
+          </time>
+        </div>
+        <div>
+          Updated on  
+          <time datetime="{{ .Date.Format .Site.Params.timeFormatRFC3339 }}">
+            {{- .Lastmod.Format .Site.Params.timeFormatDefault -}}
+          </time>
+        </div>
+        <div>
+          {{ partial "category-meta.html" . }}
+        </div>
+      </div>
+    </header>
+    <div class="site-notes-content" >
+      {{ with .Params.canonical }}
+        {{ $url := urls.Parse . }}
+        <div>
+          This article was originally published on
+          <a href="{{ . }}" rel="nofollow noopener">
+            {{ $url.Host }}
+          </a>
+        </div>
+      {{ end }}
+
+      {{ .Content }}
+    </div>
+    {{ partial "related.html" . }}
+  </article>
+{{ end }}

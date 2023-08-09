@@ -1,0 +1,72 @@
+baseURL: https://tangledbytes.com/
+languageCode: en-us
+title: Tangled Bytes
+taxonomies:
+  tag: tags
+enableRobotsTXT: true
+enableGitInfo: true
+outputs:
+  home:
+  - HTML
+  - RSS
+outputFormats:
+  RSS:
+    mediaType: application/rss+xml
+    baseName: feed
+params:
+  author:
+    name: Utkarsh Srivastava
+    homepage: https://tangledbytes.com
+    twitterHandle: tangledbytes
+  timeFormatRFC3339: "2006-01-02T15:04:05Z07:00"
+  timeFormatDefault: "January 2, 2006"
+  timeFormatShort: "Jan 02, 2006"
+menu:
+  main:
+  - name: Tags
+    url: /tags/
+    weight: 3
+  - name: Search
+    url: /search/
+    weight: 0
+  - name: Notes
+    url: /notes/
+    weight: 1
+  footer:
+  - name: RSS
+    url: /feed.xml
+    weight: 2
+  - name: GitHub
+    url: https://github.com/utkarsh-pro
+    weight: 5
+  - name: LinkedIn
+    url: https://www.linkedin.com/in/utkarsh-srivastava-2310/
+    weight: 4
+  - name: Twitter
+    url: https://www.twitter.com/tangledbytes
+    weight: 6
+markup:
+  highlight:
+    codeFences: true
+    guessSyntax: true
+    noClasses: true
+    style: catppuccin-mocha
+  goldmark:
+    extensions:
+      definitionList: true
+      footnote: true
+      linkify: true
+      strikethrough: true
+      table: true
+      taskList: true
+      typographer: true
+    parser:
+      attribute:
+        block: true
+        title: true
+      autoHeadingID: true
+      autoHeadingIDType: github
+    renderer:
+      hardWraps: false
+      unsafe: true
+      xhtml: false

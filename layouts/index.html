@@ -1,0 +1,17 @@
+{{ define "main" }}
+  <div>
+    <section class="site-index-intro">
+      <p>
+        Hello, hello! I am Utkarsh Srivastava. I am a Software Engineer. I love learning new things and learning to share them with others.
+        I am currently working at <a href="https://www.ibm.com/">IBM</a> as a Software Engineer.
+      </p>
+      <p>I love absolutely everything about storages engines, databases, distributed systems and in general systems programming.</p>
+      <p><strong>Recent interests:</strong> Data Oriented Programming, Zig.</p>
+    </section>
+    <section>
+      <h2>Blogs</h2>
+      {{ $notes := where .Site.RegularPages "Section" "blogs" }}
+      {{ partial "summary-list" $notes }}
+    </section>
+  </div>
+{{ end }}

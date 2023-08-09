@@ -1,0 +1,33 @@
+{{ define "main" }}
+  {{ $scratch := newScratch }}
+  {{ range .Pages }}
+    {{ $char := (lower (slicestr .Title 0 1)) }}
+    {{ $scratch.Add $char (slice .Title) }}
+  {{ end }}
+  <section>
+    <header>
+      <h1>{{ .Title }}</h1>
+    </header>
+    <div>
+      {{ range $char := (slice "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z") }}
+        {{ if $scratch.Get $char }}
+          <div>
+            <header>
+              <h2>{{ $char | upper }}</h2>
+            </header>
+            <ul class="component-hlist">
+              {{ range sort (uniq ($scratch.Get $char)) }}
+                <li>
+                  <a href="/tags/{{ . | urlize }}/" class="component-linktext">
+                    <span>#</span>
+                    {{- . | lower | urlize -}}
+                  </a>
+                </li>
+              {{ end }}
+            </ul>
+          </div>
+        {{ end }}
+      {{ end }}
+    </div>
+  </section>
+{{ end }}

@@ -1,0 +1,6 @@
+{{- $original := .Inner | markdownify -}}
+{{- $this := .Get "this" -}}
+{{- $with := .Get "with" -}}
+{{- $limit := .Get "limit" | default 1 | int -}}
+{{- $html := replace $original $this $with $limit -}}
+{{- $html | safeHTML -}}
