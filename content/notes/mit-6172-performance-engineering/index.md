@@ -2,7 +2,7 @@
 title: "MIT 6.172 Performance Engineering"
 description: "Notes from MIT 6.172 Performance Engineering Course"
 date: 2023-08-25T15:13:11+05:30
-draft: true
+draft: false
 tags: ["performance"]
 ---
 
