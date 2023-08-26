@@ -154,6 +154,7 @@ for {
             // do stuff recursively
         }
         ```
+
 ## Bit Hacks
 
 - Unsigned Integer representation: \\(x = \sum_{k = 0}^{w - 1} x_k 2^k\\) where `x` is a `w` bit word.
@@ -162,6 +163,7 @@ for {
   - `0b000...000` is `0` while `0b111...111` is `-1`.
   - `x + ~x = -1` (if you woud think hard about it, you would realize that adding each individual bit will always look like `1 + 0`, hence it will
     always be `0b111...111` which is `-1`). This also yields that `-x = ~x + 1`.
+- Some of the bit hacks can be extended to vectors as well.
 - Set `kth` bit to `1`: `y = x | (1 << k)`
 - Set `kth` bit to `0`: `y = x & ~(1 << k)`
 - Toggle `kth` bit: `y = x ^ (1 << k)`
@@ -196,6 +198,76 @@ for {
    ++n;
    ```
 - Compute the mask of least significant bit of a word `x`. `mask = x & ~(x - 1) = x & (-x)`.
-- Some of the bit hacks can be extended to vectors as well.
+- To compute `lg(x)` where `lg(x)` is `ln(x)/ln(2)` and `x` is a power of 2, we need to know **de Bruijn sequence**.
+
+### de Bruijn Sequence
+A de Bruijn sequence \\(s\\) of length \\(2^k\\) is a cycling 0-1 sequence such that each of the \\(2^k\\) 0-1 strings of length \\(k\\) occurs exactly once as a substring of \\(s\\).
+
+For example, deBruijn sequence for `k = 3` will be `00011101`.
+
+It has [many use cases](https://en.wikipedia.org/wiki/De_Bruijn_sequence) including calculating the power of 2.
+
+The basic idea behind it is that we have, a de bruijn sequence for `k` and a table which maps the substrings to their location in the sequence then we can simply:
+```c
+// because x is power of 2, it is eq to shifting
+uint64_t shifted_sequence = sequence * x;
+
+// lookup in the table
+int pow = table[shifted_sequence >> seq_len];
+```
+
+<mark>Now a days there are hardware instructions that will do this automatically</mark>
+
+### N Queens Problem
+
+The solution is good old backtracking but board representation should we use?
+1. `n * n` bytes (2d array of bytes)?
+2. `n * n` bits (2d array of bits)?
+3. `n` bytes (we any way just need to store the position of queen in the row at a time)?
+
+A more compact representation is using 3 bitvectors of size `n`, `2n - 1` and `2n - 1`.
+
+### Population Count Problem
+Count the number of 1 bits in a word `x`.
+
+```c
+for (r = 0; x != 0; r++)
+    // this is eliminating least significant 1
+    x &= x - 1;
+```
+
+The issue with above solution is that it is really efficient if there are less number of bits set to 1 however the performance degrades as the number of 1s increases.
+
+Another solution is to store all the 1s count for each 8 bit word (256 total) in a lookup table and iterate over words in a batch size of 8.
+```c
+static const int count[256] = {...};
+int r;
+
+for (r = 0; x != 0; x >>= 8)
+    r += count[x & 0xFF];
+```
+
+The performance of above operation is primarly constrained by the memory access speed.
+
+There is another even more efficient (and crazy and obfsucated) solution to this problem
+```c
+// Create masks
+M5 = ~((-1) << 32); // 0^32 1^32
+M4 = M5 ^ (M5 << 16); // (0^16 1^16)^2
+M3 = M4 ^ (M4 << 8); // (0^8 1^8)^4
+M2 = M3 ^ (M3 << 4); // (0^4 1^4)^8
+M1 = M2 ^ (M2 << 2); // (0^2 1^2)^16
+M0 = M1 ^ (M1 << 0); // (01)^32
+
+// Compute popcount
+x = ((x >> 1) & M0) + (x & M0);
+x = ((x >> 2) & M1) + (x & M1);
+x = ((x >> 4) + x) & M2;
+x = ((x >> 8) + x) & M3;
+x = ((x >> 16) + x) & M4;
+x = ((x >> 32) + x) & M5;
+```
+
+The above is a brainfuck but is extremely performant. No need to do this though, most modern hardware have popcount instructions now.
 
 <hr style="margin: 4rem 0;"/>
