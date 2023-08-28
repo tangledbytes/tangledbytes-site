@@ -543,4 +543,150 @@ The 5 stage over-simplified processor does not talk about:
 the instructions out of order. More details [in the video](https://www.youtube.com/watch?v=L1ung0wil9Y&t=4300s).
 - **Branch Prediction** - In case the processor encounters a conditional, it is going to do _speculative execution_ where it basically guesses the outcome and will execute the branch.
 
+## C to Assembly
+> Tip: `GOOS=<os> GOARCH=<arch> go tool objdump -S <binary>` will show assembly for that platform regardless of the host 🤯!!
+
+### LLVM IR
+LLVM IR - LLVM Intermediate Representation. C compiler (clang) would compile C code into LLVM IR.
+
+To compile to LLVM IR run `clang -S -emit-llvm <c-file>`
+
+#### Vs Assembly
+- LLVM IR is similar to assembly
+- LLVM IR instruction format `<destination operand> = <opcode> <source operands>`.
+- Control flow is implemented using conditional and unconditional branches, no implicit FLAGS register or condition codes.
+- LLVM IR has smaller instruction set.
+- LLVM IR can have infinite registers!!
+- No explicit stack pointer or base pointer.
+- C like type system.
+- C like functions.
+
+LLVM IR example for a fib calculation program
+```LLVM
+; fib.ll
+define i64 @fib(i64) local_unnamed_addr #0 {
+    %2 = icmp slt i64 %0, 2
+    br i1 %2, label %9, label %3
+
+; <label>:3:                        ; preds = %1
+    %4 = add nsw i64 %0, -1
+    %5 = tail call i64 @fib(i64 %4)
+    %6 = add nsw i64 %0, -2
+    %7 = tail call i64 @fib(i64 %6)
+    %8 = add nsw i64 %7, %5
+    ret i64, %8
+
+; <label>:9:                        ; preds = %1
+    ret i64 %0
+}
+```
+
+#### Registers
+- LLVM IR stores values variables called registers.
+- Syntax: `%<name>`
+- Function scoped.
+- **_Caveat_**: LLVM hijacks its syntax for registers to refer to "basic blocks".
+
+#### Instructions
+- Syntax for instructions that produce a value: `%<name> = <opcode> <operand list>`.
+- Syntax for instructions that do not produce value: `<opcode> <operand list>`.
+- Operands are registers, constants or even "basic blocks".
+- Arguments are evaluated before operations and intermediate results are saved in registers.
+
+#### Data Types
+- Integers: `i<number>` - Just like zig (or zig is like LLVM IR)
+- FP values: `double`, `float`
+- Arrays: `[<number> x <type>]`
+- Structs: `{ <type>, ... }`
+- Vectors: < <number> x <type> >
+- Pointers: <type>*
+- Labels (aka **Basic Blocks**): `label`
+- Aggregate types like struct/array are typically stored in memory hence access involves first calculating the address and then loading the data.
+    - Address calculation is done by `getelementptr` instruction from a pointer and a list of indices.
+       ```LLVM
+       ; computes the address %2 + 0 + %4
+       ; [7 x i32]* is the pointer into memory and adds indices literal value and 0 and value stored
+       ; in register %4
+       %5 = getelementptr inbounds [7 x i32], [7 x i32]* %2, i64 0, i64 %4
+       ```
+
+#### Functions
+- Most often, every C function will have a equivalent in the LLVM IR.
+- Function definition and declaration and similar to C.
+- `ret` statement acts like C's `return`.
+- `local_unnamed_addr` means that the function parameters are automatically named `%0`, `%1`, `%2`, etc.
+
+#### Basic Blocks
+- The body of a function is partioned into **basic blocks**: sequences of instructions where control only enters through the first instruction
+and only exits from the last.
+
+#### Conditionals
+- `br` is the conditional branch instruction. Syntax `br <predicate>, <block-if-true>, <block-if-false>`.
+- It is possible to have an unconditional branch in LLVM IR. In this case the syntax is: `br <block>`. Eg. `br label %6`.
+
+#### Loops
+- LLVM IR representation maintains the **static single assignment (SSA)** invariant: a register is defined by at most one instruction in a function.
+    - This poses the problem for implementing loops like what happens when control flow merges, eg. at the entry point of a loop?
+- Loops can be simply implemented by `br` instructions as it allows to jump to any label. However, C loops are a bit more nuanced than that. C `for` loops
+have initialization, condition check, and updation of induction variable. This structure poses a problem as SSA would not allow updating the register value
+and the at the same time we do need a mechanism to track the value of our "induction" variable.
+    - This problem is solved by the `phi` instruction. `phi` instruction simply lists that what the value should be considering from which block the control
+    flow has entered. Syntax `phi <type> [ <value> <block> ] [ <value> <block> ] ...`.
+
+#### LLVM IR Attributes
+- LLVM IR constructs (eg instructions, operands, functions and function parameters) might be decorated with attributes.
+- Some come directly from the source code while some come from compiler analysis.
+
+### Translating LLVM IR to Assembly
+- The compiler must perform three tasks to translate LLVM IR into x86-64 assembly
+    - Select assembly instructions to implement instructions.
+    - Allocate GPA registers to hold values.
+- Coordinate function calls.
+
+#### Layout of a Program in Memory
+{{< imgh src="memory-layout.png" alt="diagram showing the memory layout of a program" imgClass="component-img display-block">}}
+
+#### Assembler Directives
+- Assembly code contains directives that refer to and operate on sections of assembly.
+- **Segment directives**
+    - Organize the contents of the assembly file into segments.
+    - `.text` - for text segment
+    - `.bss` - for bss segment
+    - `.data` - for data segment
+- **Storage directives**
+    - Store content into current segment
+    - Examples:
+        - `x: .space 20 ; allocate 20 bytes at location x`
+        - `y: .long 172 ; store the const 172L at location y`
+    - > 🤔: I don't understand how would I refer to these data in the assembly?
+- **Scope and linkage directives**
+    - Controls linking
+    - Example: `.globl fib ; make fib visible to other object files.`
+
+#### The Call Stack
+- Stores data in memory to manage function calls and returns.
+- Stores
+    - Return address of a function call.
+    - Register state so different functions can use the same registers.
+    - Function arguments and local variables that don't fit in registers.
+
+#### This Linux x86-64 Calling Convention
+- It organizes the stack into **frames**, where each function instantiation gets a single frame of its own.
+- The `%rbp` register points to the top of the current stack frame.
+- The `%rsp` register points to the bottom of the current stack frame.
+- The `call` instruction in x86-64 pushes the `%rip` onto the stack and jumps to the operand, which is the address of a function.
+- The `ret` instruction in x86-64 pops `%rip` from the stack and returns to the caller.
+- In case of function execution, it is possible that the callee function and caller function want to use the same registers. This problem requires that
+somehow the values in the registers should be stored in the memory either by callee, by caller or by both.
+    - Linux x86-64 calling convention goes with the last solution.
+    - Callee-saved registers: `%rbx`, `%rbp`, `%r12-%r15`
+    - All other registers are caller-saved.
+- Walkthrough is [here](https://youtu.be/wt7a5BOztuM?list=PLUl4u3cNGP63VIBQVWguXxZZi0566y7Wf&t=3798). Worth checking out at least once. For more info, 
+need to look at [System V ABI](https://www.sco.com/developers/gabi/latest/contents.html).
+
+> Compilers love using `leaq` for simple arithmatic because they can have a different destination register unlike what they get in with the simple
+> add instruction.
+
+{{< imgh src="c-linkage-for-gprs.png" alt="table showing the c linkage for x86-64 GPRs" imgClass="component-img display-block">}}
+
 <hr style="margin: 4rem 0;"/>
