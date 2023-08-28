@@ -306,17 +306,17 @@ x86-64 did not start as x86-64 rather the word size was 16 bits initially, this 
 
 Layout
 ```
---------------------------------------
-                %rax                  
---------------------------------------
-                  |       %eax        
---------------------------------------
-                  |         |   %ax   
---------------------------------------
-                  |         | %ah| %al
---------------------------------------
-B7 | B6 | B5 | B4 | B3 | B2 | B1 | B0
---------------------------------------
+-------------------------------------------------------
+                        %rax                           
+-------------------------------------------------------
+                          |            %eax            
+-------------------------------------------------------
+                          |              |     %ax      
+-------------------------------------------------------
+                          |              |  %ah |  %al
+-------------------------------------------------------
+  B7  |  B6  |  B5  |  B4  |  B3  |  B2  |  B1  |  B0  
+-------------------------------------------------------
 ```
 
 Only `%rax`, `%rbx`, `%rcx` and `%rdx` have a seperate register name to access B1.
@@ -363,7 +363,7 @@ There are 2 types of syntax.
 Example: `movq -16(%rbp), %rax ; Moves a 64 bit integer as quad means 4 16-bit words`
 
 #### x86-64 Data Types
-<img src="x86-data-types.png" alt="table of x86-64 data types" style="max-width:100%" />
+{{< imgh src="x86-data-types.png" alt="table of x86-64 data types" imgClass="component-img display-block" quality="100">}}
 
 - Sign-extension or zero-extension opcodes use two data-type suffixes.
   1. `movzbl %bl, %edx` - Move value from 8bit `%bl` register to 32bit `%edx` register with zero being filled in higher bits.
@@ -488,7 +488,7 @@ jge 5  <_fib+0x15> ; I have no idea what the fuck this does.
         - Second `d` stands for double-precision
 
 #### Vector Hardware
-<img src="vector-hardware.png" alt="diagram showing the vector hardware" style="max-width:100%" />
+{{< imgh src="vector-hardware.png" alt="diagram showing the vector hardware" imgClass="component-img display-block">}}
 
 - Performs same action on a large register (that is broken down into smaller words). They all operate in a lock step.
 - Depending on the architecture, memory might need to be aligned. Usually there is a performance difference, always align.
@@ -512,7 +512,7 @@ operand.
 - YMM registers alias XMM registers so mutating `%xmm0` will change the value for `%ymm0`.
 
 ### Computer Architecture
-<img src="5-stage-processor.png" alt="diagram showing the 5 stages in which processor does the processing" style="max-width:100%" />
+{{< imgh src="5-stage-processor.png" alt="diagram showing the 5 stages in which processor does the processing" imgClass="component-img display-block">}}
 
 Each instruction is executed through 5 stages (Vastly simplified):
 1. Instruction Fetch (IF) - Read from memory.

@@ -1,6 +1,6 @@
 .container {
 	margin: 0 auto;
-	max-width: $global-max-width;
+	max-width: calc(#{$global-max-width} + 1rem + 1rem);
 	padding: 1rem;
 }
 
