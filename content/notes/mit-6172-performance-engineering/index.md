@@ -684,9 +684,105 @@ somehow the values in the registers should be stored in the memory either by cal
 - Walkthrough is [here](https://youtu.be/wt7a5BOztuM?list=PLUl4u3cNGP63VIBQVWguXxZZi0566y7Wf&t=3798). Worth checking out at least once. For more info, 
 need to look at [System V ABI](https://www.sco.com/developers/gabi/latest/contents.html).
 
-> Compilers love using `leaq` for simple arithmatic because they can have a different destination register unlike what they get in with the simple
-> add instruction.
+<mark>Compilers love using `leaq` for simple arithmatic because they can have a different destination register unlike what they get in with the simple
+add instruction.</mark>
 
 {{< imgh src="c-linkage-for-gprs.png" alt="table showing the c linkage for x86-64 GPRs" imgClass="component-img display-block">}}
+
+## Multicore Programming
+
+- If a processor wants to read a value `x`, it will load it from memory, save it into its cache and then will load that to one of its registers.
+- Other processors can either read from the main memory or can be read from another processor's cache.
+   > Not sure why this isn't the default though?
+- Multicore hardware need to solve the problem of cache coherence. They use a protocol like **MSI protocol** for doing so.
+    - Done at the granularity of the cache line instead of per item.
+        - `M`: cache bock has been modified. No other caches contain this block in `M` or `S` states.
+        - `S`: other caches maybe sharing this block.
+        - `I`: cache block is invalid (treated as not being there)
+    - Before a cache modifies a location, the hardware first invalidates all other copies.
+        - It was raised in the lecture that if processors are going to communicate that the cache is invalid why not instead
+        communicate the update value? In some complex protocols, they do.
+    - When the processor needs to access the value, it needs to ensure that the value is not in `I` state, if it is then it needs to fetch (either
+    form main memory or from cache of another processor) the fresh value.
+    - There are many protocols like `MESI`, etc.
+    - When a bunch of processors try to update the same value then that can lead to **invalidation storm** which can become a huge performance bottlenecks.
+
+### Concurrency Platforms
+- Abstracts processor cores, handles synchronization and communication protocols and performs load balancing.
+
+#### Pthreads
+- Standard API for threading specified by ANSI/IEEE POSIX 1003.1-2008.
+- Built as a library.
+- Each threads implements an abstraction of a processor, which are multiplexed onto machine resources.
+- Threads communicate through shared memory.
+- Library functions mask the protocols involved in interthread coordination.
+- Example functions
+    - `int pthreate_create(pthread_t *thread, const pthread_attr_t *attr, void *(*func)(void *), void *arg)`
+    - `int pthread_join(pthread_t thread, void **status)`
+- Issues
+    - Overhead: The cost of creating a thread more than \\(10^4\\) cycles => coarse-grained concurrency. Here thread pools might be helpful.
+    - Scalability: Harder to scale.
+    - Code Simplicity: Marshalling and unmarshalling of arguments could error prone but is left to the consumers of the library.
+
+#### Intel Threading Building Blocks
+- C++ library on top of pthreads.
+- Offers an abstraction of **task**.
+- Uses work-stealing algorithm to load balance tasks across threads.
+- Focus on performance.
+- Example: Not worth it, looks just another concurrency library.
+
+#### OpenMP
+- Unlike Intel TBB and pthread which are _library solutions_, OpenMP is a _linguistic solution_.
+- Linguistic extensions to C/C++ and Fortran in the form of compiler pragmas.
+    - Supported by GCC, ICC, Clang and Visual Studio.
+- Runs on top of native threads.
+- Supports loop parallelism, task parallelism and pipeline parallelism.
+- Provides many pragma directives to express common patterns such as
+    - `parallel for` for loop parallelism
+    - `reduction` for data aggregation
+    - directives for scheduling and data sharing
+- Also supplies sync primitives like barriers, atomics, mutex, etc.
+- Example (performs better than TBB alternative)
+   ```C
+   int64_t fib(int64_t n) {
+       if (n < 2) return n;
+
+       int64_t x, y;
+   #pragma omp task shared(x, n)
+       x = fib(n - 1);
+
+   #pragma omp task shared(y, n)
+       y = fib(n - 2);
+
+   #pragma omp taskwait
+       return (x + y);
+   }
+   ```
+
+> What's the catch?
+
+#### Intel Cilk Plus
+- The "Cilk" part is a small set of linguistic extensions to C/C++ to support **fork-join parallelism**.
+- The "Plus" part supports **vector parallelism**.
+- Features a provably efficient work-stealing scheduler.
+- Provides a hyperobject library for parallelizing code with global variables.
+- Ecosystem has
+    - Cilkscreen for race detection
+    - Cilkview for scalability analysis
+- Example
+   ```C
+   int64_t fib(int64_t n) {
+       if (n < 2) return n;
+
+       int64_t x, y;
+       x = cilk_spawn fib(n - 1);
+       y = fib(n - 2);
+
+       cilk_sync;
+       return (x + y);
+   }
+   ```
+
+> What's the catch? Maybe using a custom compiler is the catch.
 
 <hr style="margin: 4rem 0;"/>
