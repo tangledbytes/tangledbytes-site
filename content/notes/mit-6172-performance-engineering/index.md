@@ -785,4 +785,82 @@ add instruction.</mark>
 
 > What's the catch? Maybe using a custom compiler is the catch.
 
+## Races and Parallelism
+- **Determinancy Race**: Occurs when two logically parallel instructions access the same memory location and at least
+one of the instructions performs a write.
+- Two sections of code are indepedent if they have no determinancy races between them.
+- Avoiding Races in Cilk
+    - Iterations of a `cilk_for` should be independent.
+    - Between a `cilk_spawn` and the corresponding `cilk_sync`, the code of the spawned child should be independent of the
+    code executed by additional spawned or called children.
+    - Machine word size matters. Watch out for races in packed data structures.
+       Example:
+       ```C
+       // Updating x.a and x.b in parallel may cause a race.
+       // Depends on compiler optimization level
+       // Safe on intel x86-64
+       // --! Someone mentioned that C11 mandates that this should be safe !--
+       struct {
+           char a;
+           char b;
+       } x;
+       ```
+    - Use cilksan race detector.
+- Parallelism
+    - A parallel instructions stream is a DAG `G = (V, E)`
+    - Each vertex \\(v \in V\\) is strand: a sequence of instructions not containing a spawn, sync or return from a spawn.
+    - First instruction is called initial strand, last instruction is called the final strand.
+    - A strand is called ready if all its predecessors have executed.
+    - An edge \\(e \in E\\) is a spawn, call, return or continue edge.
+        - spawn edge corresponds to a function that was spawned.
+        - call edge corresponds to a function that is called.
+        - return edge corresponds to a return back to the caller of the function.
+        - continue edge corresponds a function execution after the spawn call.
+    - Cilk
+        - Computation DAG is processor oblivious.
+        - `cilk_for` is converted to spawns and syncs using recursive divide-and-conquer.
+    - Amdahl's "Law"
+        - If 50% of your application is parallel and 50% is serial, you can;t get more than a factor of 2 speedup, no matter
+        how many processors it runs on.
+        - In general, if a fraction \\(\alpha\\) of an application must be run serially, the speedup can be at most \\(1/\alpha\\).
+        - Gives a very lose upper bound, not very useful.
+    - Performance Measures
+        - \\(T_p\\) is execution time on P processors.
+        - \\(T_1\\) is work.
+        - \\(T_{\infty}\\) is span, also called critical-path length or computatational depth. It also called the same because
+        it is the time required if we had inifinite number of processors.
+            - It is so because no matter how many processors we have, we are limited by the maximum number of sequential ops
+            that need to be performed.
+        - **Work Law**: \\(T_p \geq T_1 / p\\).
+        - **Span Law**: \\(T_p \geq T_{\infty}\\).
+        - Series Composition
+            - Work: \\(T_1\left(A \cup B\right) = T_1\left(A\right) + T_1\left(B\right) \\).
+            - Span: \\(T_{\infty}\left(A \cup B\right) = T_{\infty}\left(A\right) + T_{\infty}\left(B\right) \\).
+        - Parallel Composition
+            - Work: \\(T_1\left(A \cup B\right) = T_1\left(A\right) + T_1\left(B\right) \\).
+            - Span: \\(T_{\infty}\left(A \cup B\right) = \max \left \\{T_{\infty}\left(A\right), T_{\infty}\left(B\right) \right\\} \\).
+        - Speedup: \\(T_1 / T_p\\) is speedup on \\(P\\) processors.
+            - If \\(T_1 / T_p \lt P\\), we have **sublinear speedup**.
+            - If \\(T_1 / T_p = P\\), we have **(perfect) linear speedup**.
+            - If \\(T_1 / T_p\\), we have **superlinear speedup**, which is not possible in this simple performance model, because
+            of the work law.
+               
+               In practice this might happen sometimes due to higher cache availability.
+        - Parallelism: \\(T_1 / T_{\infty}\\)
+            - This is the average amount of work per step along the span.
+            - CilkScale can draw these plots.
+- Scheduling Theory
+    - Greedy Scheduling: Do as much as possible on every step.
+    - There are 2 kinds of steps in a greedy scheduler
+        1. Complete Step
+            - \\(\ge P\\) strands ready.
+            - Will run any \\(P\\).
+        2. Incomplete Step
+            - \\(\lt P\\) strands ready.
+            - Will run all \\(P\\).
+    - Analysis:
+        - Any greedy scheduler achieves \\(T_p \le T_1 / P + T_{\infty}\\)
+        - Any greedy scheduler achieves within a factor of 2 of optimal.
+        - Any greedy scheduler achieves a near-perfect linear speedup whenever \\(T_1 / T_{\infty} \gg P \\).
+
 <hr style="margin: 4rem 0;"/>
