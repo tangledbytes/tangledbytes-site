@@ -1,0 +1,2 @@
+{{- $src := $.Page.Resources.GetMatch (.Get "src") -}}
+<div class="{{ .Get "class" }}" style="{{ .Get "style" }}">{{- $src.Content | safeHTML -}}</div>
