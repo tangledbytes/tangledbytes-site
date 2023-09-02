@@ -863,4 +863,102 @@ one of the instructions performs a write.
         - Any greedy scheduler achieves within a factor of 2 of optimal.
         - Any greedy scheduler achieves a near-perfect linear speedup whenever \\(T_1 / T_{\infty} \gg P \\).
 
-<hr style="margin: 4rem 0;"/>
+## Analysis of Multithreaded Algorithms
+- Master Theorem: \\(T(n) = aT(n / b) + f(n)\\) where \\(a \ge 1\\) and \\(b \gt 1\\).
+    - Case 1: \\(f(n) = O(n^{\log_b a - \epsilon})\\), constant \\(\epsilon \gt 0\\) \\(\implies T(n) = \Theta(n^{\log_b a})\\).
+    - Case 2: \\(f(n) = O(n^{\log_b a} \lg^k n)\\), constant \\(k \ge 0\\) \\(\implies T(n) = \Theta(n^{\log_b a} \lg^{k + 1} n)\\).
+    - Case 3: \\(f(n) = \Omega(n^{\log_b a + \epsilon})\\), constant \\(\epsilon \gt 0\\) (and regularity condition) 
+    \\(\implies T(n) = \Theta(f(n))\\).
+- Loop Parallelism in Cilk:
+    - Implementation example
+      ```c
+      cilk_for (int i = 1; i < n; ++i) {
+          for (int j = 0; j < i; ++j) {
+              double temp = A[i][j];
+              A[i][j] = A[j][i];
+              A[j][i] = temp;
+          }
+      }
+
+      // The above gets converted to
+      void recur(int lo, int hi) {
+          if (hi > lo + 1) {
+              int mid = lo + (hi - lo) / 2;
+              cilk_spawn recur(lo, mid);
+              recur(mid, hi);
+
+              cilk_sync;
+              return;
+          } 
+
+          int i = lo;
+          // This loop is copied directly
+          for (int j = 0; j < i; ++j) {
+              double temp = A[i][j];
+              A[i][j] = A[j][i];
+              A[j][i] = temp;
+          }
+      }
+      // ...
+      recur(1, n);
+      ```
+        - Work: \\(T_1(n) = \Theta(n^2)\\)
+        - Span: \\(T_{\infty}(n) = \Theta(\lg n + n) = \Theta(n)\\)
+        Parallelism: \\(T_1(n)/T_{\infty} = \Theta(n)\\)
+    - Analysis of Nested Parallel Loops (extension of above)
+      ```c
+      cilk_for (int i = 1; i < n; ++i) {
+          cilk_for (int j = 0; j < i; ++j) {
+              double temp = A[i][j];
+              A[i][j] = A[j][i];
+              A[j][i] = temp;
+          }
+      }
+      ```
+        - Work: \\(T_1(n) = \Theta(n^2)\\)
+        - Span: \\(T_{\infty}(n) = \Theta(\lg n)\\)
+            - Span of outer loop control is \\(\Theta(\lg n)\\)
+            - Span of inner loops control is \\(\Theta(\lg n)\\)
+            - Span of body is \\(\Theta(1)\\). It is 1 because now there is no iteration, the iterations are replaced with
+            the spawns which are accounted for in the inner loops control above.
+        - Parallelism: \\(T_1(n)/T_{\infty} = \Theta(n^2/\lg n)\\)
+            - This seems like a better algorithm than the above but in reality it might not be. We just have to ensure
+            that the parallelism is more than the number of cores we have access to. \\(\Theta n\\) is already large
+            in comparison to the processors we usually have access to, hence further parallelism would not add any benefit
+            but would add the overhead of parallelism.
+    - Work that we accounted for above, includes substantial overhead. This can be improved by coarsening the parallelism
+        - Example. Let \\(G\\) be the grain size, \\(I\\) be the time for one iteration of the loop body and \\(S\\) 
+        be the time to perform a spawn and return.
+            ```c
+            #pragma cilk grainsize G
+            cilk_for (int i = 0; i < n; ++i) A[i] += B[i];
+
+            // The above gets converted to the following
+            void recur(int lo, int hi) {
+                if (hi > lo + G) {
+                    int mid = lo + (hi - lo) / 2;
+                    cilk_spawn recur(lo, mid);
+                    recur(mid, hi);
+                    cilk_sync;
+                    return;
+                }
+
+                for (int i = lo; i < hi; ++i) A[i] += B[i];
+            }
+            // ...
+            recur(0, n);
+            ```
+            - Work: \\(T_1 = n.I + (n / G - 1).S \\).
+            - Span: \\(T_{\infty} = G.I + \lg(n / G).S\\).
+            - To minimize overhead, we need to make sure \\(G \gg S / I\\) and \\(G\\) is small.
+- Performance Tips
+    1. **Minimize the span** to maximize parallelism. Try to generate 10 times more parallelism than
+    processors for near-perfect linear speedup.
+    2. If you have plenty of parallelism, try to trade some of it off to **reduce overhead**.
+    3. Use divide-and-conquer recursion or parallel loops rather than spawning one small thing after another.
+    4. Ensure that work/len(spawn) is sufficiently large.
+        - Coarsen by using function calls and **inlining** near the leaves of recursion rather than spawning.
+    5. Parallelize outer loops as opposed to inner loops, if you are forced to make a choice.
+    6. Watch out for **scheduling overhead**.
+
+<hr style="margin: 3rem 0;"/>
