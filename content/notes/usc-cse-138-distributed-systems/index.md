@@ -102,7 +102,7 @@ is \\(A \rightarrow B\\) then we know that \\(LC(A) \lt LC(B)\\). <mark>The reve
         
         > In some formulations, message received is not counted as an event which means that instead of moving counter to 
         \\(\max  \left\\{ local, recv \right\\} + 1\\) it is moved to \\(\max  \left\\{ local, recv \right\\}\\).
-- <mark>Lamport clocks do not characterizes causality.</mark> That means that \\(LogicalClock(A) \lt LogicalClock(B)\\) does not imply \\(A \rightarrow B\\).
+- <mark>Lamport clocks do not characterizes causality.</mark> That means that \\(LC(A) \lt LC(B)\\) does not imply \\(A \rightarrow B\\).
 - Example
    
    {{< svgx src="lamport-clock-ex-1.svg" class="component-svgx" style="max-width: 600px" >}}
@@ -112,7 +112,7 @@ is \\(A \rightarrow B\\) then we know that \\(LC(A) \lt LC(B)\\). <mark>The reve
 >
 > For Lamport clocks, if taken contrapositive, they can indicate when 2 events do not hold "happens before" relationship.
 
-> Refer: [Time Clocks and the Ordering of Events in a Distributed System](https://lamport.azurewebsites.net/pubs/time-clocks.pdf).
+> Refer: [Time Clocks and the Ordering of Events in a Distributed System](https://lamport.azurewebsites.net/pubs/time-clocks.pdf). <!-- @utk: TOREAD -->
 
 ### Vector Clocks
 - Vector Clock is a type of a logical clock. Vector clock of event \\(A\\) is given by \\(VC(A)\\).
@@ -125,4 +125,37 @@ is \\(A \rightarrow B\\) then we know that \\(LC(A) \lt LC(B)\\). <mark>The reve
     3. When sending a message, the process includes its current vector clock (after incrementing from previous step - send is an event as well).
     4. When receiving a message, the process merges the its local vector with the received vector such that receiving process will set each index to
     `local[i] = max(recv[i], local[i]) + (i == localID)`.
+- Example
+   
+   {{< svgx src="vector-clock-ex-1.svg" class="component-svgx" >}}
+
+
+## Delivery Guarantees
+
+### FIFO Delivery
+- If a process sends message \\(m_2\\) after message \\(m_1\\), any process delivering both delivers \\(m_1\\) first.
+- Already part of TCP.
+- Usual approach to implement FIFO delivery is to use sequence numbers.
+    - Messages get tagged with sender ID and sender sequence number.
+    - Senders increment their sequence number after sending.
+    - If a received message's SN is the prev.SN + 1 then deliver.
+- Works only if we have reliable delivery.
+
+### Causal Delivery
+- If \\(m_1\\)s send happened before \\(m_2\\)s send, then \\(m_1\\)s delivery must happen before \\(m_2\\)s delivery.
+- It is possible that deliveries which do not voilate FIFO delivery do voilate Causal delivery. The example of this is the first diagram in the notes.
+In that example, every message is delivered in the order sent by their senders (FIFO is maintained - notice that the FIFO delivery is concerned only with
+ordering of messages sent by the same process) however it is a voilation of causal delivery. The reason of voilation of causal delivery is that we can easily
+establish a happens-before relationship between the message's sends and then can observe that the deliveries are not in the causal order.
+    - <mark>TCP cannot avoid voilation of causal delivery while it does prevent FIFO delivery voilations</mark>.
+
+### Totally Ordered Delivery
+- If a process delivers \\(m_1\\) and then \\(m_2\\) then all processes delivering both \\(m_1\\) and \\(m_2\\) deliver \\(m_1\\) first.
+
+## Executions
+- Correctness properties of executions:
+    1. FIFO Delivery
+    2. Causal Delivery
+    3. Totally Ordered Delivery
+- There are many more correctness properties of executions.
 
