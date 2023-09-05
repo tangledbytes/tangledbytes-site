@@ -961,4 +961,71 @@ one of the instructions performs a write.
     5. Parallelize outer loops as opposed to inner loops, if you are forced to make a choice.
     6. Watch out for **scheduling overhead**.
 
+## What compilers can and cannot do?
+- Simple model of compiler
+    - Performs a sequence of transformation passes on the code
+        - `LLVM IR -> Transform -> Transform -> ... -> Optimized LLVM IR`
+        - Each pass analyzes and edits the code to try to optimize the code's performance.
+        - A transformation pass might run multiple times.
+        - Passes run in a predetermined order that seems to work well most of the time.
+- Clang/LLVM can produce reports for many of its core transformation passes
+    - `Rpass=<string>` produces reports of which optimizations matching `<string>` were successful.
+    - `Rpass-missed=<string>` produces reports of which optimizations matching `<string>` were not successful.
+    - `Rpass-analysis=<string>` produces reports of the analyses performed by optimizations matching `<string>`.
+    - The argument `<string>` is Regex. To match with anything, use `.*`.
+    - <mark>Not all transformation passes generate reports.</mark>
+    - Reports don't always tell the whole story.
+- Compiler Optimizations
+    - Based on New Bentley's rules
+        - Loops
+            1. Hoisting
+            2. Loop unrolling
+            3. Loop Fusion (kinda)
+            4. Eliminating wasted iterations (kinda)
+        - Logic
+            1. Constant folding and propagation
+            2. Common-subexpression elimination
+            3. Algebraic identities
+            4. Short-circuiting
+            5. Ordering tests (kinda)
+            6. Combining tests (kinda)
+        - Functions
+            1. Inlining
+            2. Tail-recursion elimination
+    - More compiler optimizations (beyond bentley)
+        - Data Structures
+            1. Register allocation
+            2. Memory to registers
+            3. Scalar replacement of aggregates
+            4. Alignment
+        - Loops
+            1. Vectorization
+            2. Unswitching
+            3. Idiom replacement
+            4. Loop fission
+            5. Loop skewing
+            6. Loop tiling
+            7. Loop interchange
+        - Logic
+            1. Elimation of redundant instructions
+            2. Strength reductions
+            3. Dead-code elimination
+            4. Idiom replacement
+            5. Branch reordering
+            6. Global value numbering
+        - Functions
+            1. Unswitching
+            2. Argument elimination
+    - This is a moving target, new optimizations are continuously added to the compilers.
+    - Most compiler optimizations happen on the compiler's IR although not all of them. It was demonstrated how
+    compilers can perform further optimizations during IR to assembly translation (like avoiding multiplication
+    and division operations by whatever means possible).
+    - If a function is in different compilation unit it usually cannot be inlined. This can be done using **link-time optimization (LTO)**.
+    - `static inline` is only a hint to the compiler.
+    - Memory aliasing makes a compiler very conservative.
+        - Use `restrict` and `const` keywords wherever possible.
+- Cannot do:
+    - Compiler knows business logic so sometimes the _obvious_ optimizations will be missed by the compiler
+    just because the compiler is unaware of the business logic.
+
 <hr style="margin: 3rem 0;"/>
