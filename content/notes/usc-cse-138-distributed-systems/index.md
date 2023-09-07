@@ -129,7 +129,6 @@ is \\(A \rightarrow B\\) then we know that \\(LC(A) \lt LC(B)\\). <mark>The reve
    
    {{< svgx src="vector-clock-ex-1.svg" class="component-svgx" >}}
 
-
 ## Delivery Guarantees
 
 ### FIFO Delivery
@@ -140,6 +139,9 @@ is \\(A \rightarrow B\\) then we know that \\(LC(A) \lt LC(B)\\). <mark>The reve
     - Senders increment their sequence number after sending.
     - If a received message's SN is the prev.SN + 1 then deliver.
 - Works only if we have reliable delivery.
+- Voilation
+   
+   {{< svgx src="fifo-voilation.svg" class="component-svgx" style="max-width: 300px" >}}
 
 ### Causal Delivery
 - If \\(m_1\\)s send happened before \\(m_2\\)s send, then \\(m_1\\)s delivery must happen before \\(m_2\\)s delivery.
@@ -148,9 +150,15 @@ In that example, every message is delivered in the order sent by their senders (
 ordering of messages sent by the same process) however it is a voilation of causal delivery. The reason of voilation of causal delivery is that we can easily
 establish a happens-before relationship between the message's sends and then can observe that the deliveries are not in the causal order.
     - <mark>TCP cannot avoid voilation of causal delivery while it does prevent FIFO delivery voilations</mark>.
+- Voilation
+   
+   {{< svgx src="causal-voilation.svg" class="component-svgx" style="max-width: 500px" >}}
 
 ### Totally Ordered Delivery
 - If a process delivers \\(m_1\\) and then \\(m_2\\) then all processes delivering both \\(m_1\\) and \\(m_2\\) deliver \\(m_1\\) first.
+- Voilation
+   
+   {{< svgx src="total-voilation.svg" class="component-svgx" style="max-width: 600px" >}}
 
 ## Executions
 - Correctness properties of executions:
@@ -159,3 +167,27 @@ establish a happens-before relationship between the message's sends and then can
     3. Totally Ordered Delivery
 - There are many more correctness properties of executions.
 
+{{< svgx src="executions.svg" class="component-svgx" >}}
+
+## Message Types
+- Unicast Messages (point-to-point): 1 sender, 1 receiver
+- Multicast Messages: 1 sender and many receivers
+    - Broadcast - 1 sends, everyone receives (including the sender)
+
+## Implementing Causal Broadcast
+- Vector Clocks algorithm (with a twist) - The twist being that don't count received message as events.
+    - Algorithm
+        1. Every process keeps a vector clock, initialized to all 0s.
+        2. When a process sends a message it increments its own position in its vector clock and includes the VC with the message.
+        3. When a proces **delivers** a message, it updates its VC to the pointwise maximum of its local VC and the received VC on the message.
+    - Example
+        
+       {{< svgx src="causal-broadcast-ex1.svg" class="component-svgx" style="max-width: 600px" >}}
+- Difference between Causal Delivery and Causal Broadcast
+    - Delivery: Is the property of executions that we care about.
+    - Broadcast: Is an algorithm that gives you causal delivery in a setting where all messages are broadcast messages.
+- We want to define a deliverability condition that tells us if a received message is or is not OK to deliver.
+    - This condition will use the vector clock on the message.
+    - Condition: A message \\(m\\) is deliverable at a process \\(p\\) if
+        1. \\(VC(m)[k] = VC(m)[k] + 1\\) if \\(k\\) is the sender.
+        2. \\(VC(m)[k] \le VC(p)[k]\\) for any \\(k\\) which is not the sender.
