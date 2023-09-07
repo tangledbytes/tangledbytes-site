@@ -191,3 +191,42 @@ establish a happens-before relationship between the message's sends and then can
     - Condition: A message \\(m\\) is deliverable at a process \\(p\\) if
         1. \\(VC(m)[k] = VC(m)[k] + 1\\) if \\(k\\) is the sender.
         2. \\(VC(m)[k] \le VC(p)[k]\\) for any \\(k\\) which is not the sender.
+
+## Distributed Snapshot
+- Consistent Snapshopt: Given events \\(A\\) and \\(B\\) where \\(A \rightarrow B\\), if \\(B\\) is in the snapshot, \\(A\\) should be too.
+- Channels are like communication queues which provide FIFO deliveries.
+    - Denoted by \\(C_{sr}\\) where \\(s\\) is the sender process ID and \\(r\\) is the receiver process ID.
+- Why?
+    - Checkpointing
+    - Deadlock detection
+        - If we take a snapshot and find a deadlock in the snapshot then we can be sure that there is still a deadlock because once a process is
+        in the state of deadlock then it will stay in the state of deadlock.
+    - Detection of any stable property
+        - A stable property is a property which stays true once it becomes true. Deadlock is one such property. Snapshotting can help in detection
+        of such properties.
+
+### Chandy-Lamport Snapshot Algorithm
+- Developed in 1985, while vector clocks were first introduced in 1986 hence the algorithm does not uses them.
+- Pros:
+    - Does not require to pause application messages.
+    - Takes consisten snapshots.
+    - Guaranteed to terminate (assuming reliable delivery).
+    - Allows having multiple initiators (**Decentralized Algorithm**).
+- Cons:
+    - Assumes messages are not lost, corrupted or duplicated.
+    - Assumes **processes don't crash**.
+- With \\(N\\) process, will require an exchange of \\(N(N - 1)\\) marker messages.
+- Recording a snapshot:
+    - The initiator process (one or more)
+        1. Records its own state.
+        2. Sends a marker message out on all its outgoing channels.
+        3. Starts recording the messages it receives on all its incoming.
+        channels.
+    - When process \\(P_i\\) recieves a marker message on \\(C_{ki}\\)
+        1. \\(P_i\\) records its state.
+        2. \\(P_i\\) mark channel \\(C_{ki}\\) as empty.
+        3. \\(P_i\\) sends a marker out on all its outgoing channels.
+        4. \\(P_i\\) starts recording on all incoming channels except \\(C_{ki}\\).
+    - Otherwise (\\(P_i\\) has already seen (sent or recvd) a marker message)
+        1. \\(P_i\\) will stop recording on channel \\(C_{ki}\\).
+> Refer: [Distributed Snapshots: Determining Global States of Distributed Systems](https://lamport.azurewebsites.net/pubs/chandy.pdf) <!-- @utk: TOREAD -->
