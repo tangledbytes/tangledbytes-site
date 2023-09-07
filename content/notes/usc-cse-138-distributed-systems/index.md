@@ -216,6 +216,7 @@ establish a happens-before relationship between the message's sends and then can
     - Assumes messages are not lost, corrupted or duplicated.
     - Assumes **processes don't crash**.
 - With \\(N\\) process, will require an exchange of \\(N(N - 1)\\) marker messages.
+- Needs a **strongly connected** graph so as to be able to **simulate a complete graph**.
 - Recording a snapshot:
     - The initiator process (one or more)
         1. Records its own state.
@@ -229,4 +230,36 @@ establish a happens-before relationship between the message's sends and then can
         4. \\(P_i\\) starts recording on all incoming channels except \\(C_{ki}\\).
     - Otherwise (\\(P_i\\) has already seen (sent or recvd) a marker message)
         1. \\(P_i\\) will stop recording on channel \\(C_{ki}\\).
+- Will capture process state as well as channel state (which represents in-transit message).
 > Refer: [Distributed Snapshots: Determining Global States of Distributed Systems](https://lamport.azurewebsites.net/pubs/chandy.pdf) <!-- @utk: TOREAD -->
+
+## Safety and Liveness
+- Safety Property
+    - Says that a "bad" thing won't happen.
+    - Can be voilated in a finite execution.
+- Liveness Property
+    - Says that eventually something "good" will happen.
+    - Cannot be voilated in a finite execution.
+### Reliable Delivery
+- Let \\(P_1\\) be a prcocess that sends a message \\(m\\) to process \\(P_2\\). If neither \\(P_1\\) nor \\(P_2\\) crashes and not all messages are lost, then \\(P_2\\)
+eventually eventually delivers \\(m\\).
+
+> Refer: [Proving the Correctness of Multiprocess Programs](https://www.microsoft.com/en-us/research/uploads/prod/2016/12/Proving-the-Correctness-of-Multiprocess-Programs.pdf) <!-- @utk: TOREAD -->
+
+## Fault Models
+- Is a specification that says what kinds of faults a system can exhibit and this tells what kinds of faults need to be tolerated.
+- Omission fault: A message is lost (a process fails to send or receive a single message).
+- Crash fault: A process fails by haulting (stops sending/receiving messages) and not everyone necessarily knows it crashed.
+    - Special case of omission faults where all the messages are omitted.
+- Fail-Stop fault: A process fails by halting and everyone knows it crashed.
+- Timing fault: A process responds too late (or too late).
+- Byzantine fault: A process behaves in arbitrary or in a malicious way.
+
+## Two Generals Problem
+- In **omission model**, it is **impossible** for the 2 generals to attack and know for sure that the other will as well.
+- Workarounds:
+    1. **Probabilistic Certainity**: General 1 can keep sending the messages till they receive an ACK from the general 2. The idea is that, given enough retries,
+    some messages will make through. If General 2 receives the message from general 1 even after ACKing then it needs to resend the message.
+    2. **Common Knowledge**: We say there is a common knowledge of \\(P\\) is when everyone knows \\(P\\), everyone knows that everyone knows \\(P\\),
+    everyone knows that everyone knows that everyone knows \\(P\\)... .
+> Refer: [Knowledge and Common Knowledge in a Distributed Environment](https://web.eecs.umich.edu/~manosk/assets/papers/p549-halpern.pdf) <!-- @utk: TOREAD -->
