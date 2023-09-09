@@ -322,3 +322,27 @@ the other nodes and finally is written to the tail node which responds to the cl
 - Write latency is inversly proportional to the number of nodes in the chain.
 
 > Refer: [Chain Replication for Supporting High Throughput and Availability](https://www.cs.cornell.edu/home/rvr/papers/OSDI04.pdf) <!-- @utk: TOREAD -->
+
+> Refer: [Object Storage on CRAQ](https://pdos.csail.mit.edu/6.824/papers/craq.pdf) <!-- @utk: TOREAD -->
+
+## Consistency Models
+- Model: Set of assumptions.
+- Read Your Writes Consistency: Enforces that the client should be able to read their own writes.
+- FIFO Consistency: Writes done by a process are seen by all processes in the order they were issued.
+- Causal Consistency: Writes that are related by happens-before must be seen in the same (causal) order by all processes.
+- Strong Consistency (Informally): A replicate storage system is strongly consistent if clients cannot tell if the data is replicated.
+
+- Causal consistency is usually considered pretty good compromise.
+
+> Refer: [Consistency in Non-Transactional Distributed Storage Systems](https://dl.acm.org/doi/10.1145/2926965) <!-- @utk: TOREAD -->
+
+{{< svgx src="consistency-heirarchy.svg" class="component-svgx" >}}
+
+## Consensus
+- Needed for
+    - Leader election
+    - Totally ordered broadcast (Atomic broadcast)
+    - Group Membership
+    - Distributed Mututal Exclusion
+    - Distributed transaction commit
+    - etc...
