@@ -263,3 +263,62 @@ eventually eventually delivers \\(m\\).
     2. **Common Knowledge**: We say there is a common knowledge of \\(P\\) is when everyone knows \\(P\\), everyone knows that everyone knows \\(P\\),
     everyone knows that everyone knows that everyone knows \\(P\\)... .
 > Refer: [Knowledge and Common Knowledge in a Distributed Environment](https://web.eecs.umich.edu/~manosk/assets/papers/p549-halpern.pdf) <!-- @utk: TOREAD -->
+
+## Fault Tolerance
+- A correct program satisfies both its safety and liveness properties.
+- How wrong does a program go in the presence of a given class of faults?
+    |          | live        | not live  |
+    |----------|-------------|-----------|
+    | safe     | masking     | fail-safe |
+    | not-safe | non-masking | :(        |
+
+## Idempotence
+- \\(f\\) is idempotent if \\(f(x) = f(f(x)) = f(f(f(x))) = ...\\)
+- A messge that's OK to receive more than once is **idempotent**.
+
+## Reliable Delivery
+- Is **at-least-once** delivery.
+- Systems that claim **exactly-once** delivery usually mean
+    1. The message were idempotent anyway.
+    2. They are making an effort to deduplicate messages.
+
+## Reliable Broadcast
+- If a correct process delivers \\(m\\) then all correct processes deliver \\(m\\) where \\(m\\) is a broadcast message.
+    - Here the correct process means different as per the fault model under consideration.
+
+> 💡 Fault tolerance often involves making copies!
+
+## Throughput and Latency
+- Throughput: Number of actions per unit of time.
+- Latency: Time between start and end of one action.
+
+## Replication
+- Pros
+    - Fault tolerance
+    - Improve data locality (have data close to clients that need it)
+    - Dividing up the work
+- Cons
+    - Potentially slower writes
+    - Costlier as it will involve more hardware either on premise or in cloud
+    - Potential inconsistency between data
+        - Sometimes it is OK to have the replicas be out of sync
+- **Strong Consistency (Informally)**: A replicate storage system is strongly consistent if clients cannot tell if the data is replicated.
+
+
+### Primary-Backup Replication
+{{< svgx src="primary-backup-replication.svg" class="component-svgx" >}}
+- Client will send both read and write requests to the primary and primary will then make sure to replicate data on the backup nodes. Once the 
+primary receives ACK from all the backups then it will ACK the client.
+- Good for fault tolerance but not good for workload split and data locality.
+- Due to heavy reliance on the primary node, throughput of primary-backup isn't that good.
+
+### Chain Replication
+{{< svgx src="chain-replication.svg" class="component-svgx" >}}
+- Client will send read requests to the _tail_ node while will send write requests to the _head_ node. Write requests are then chain replicated to all
+the other nodes and finally is written to the tail node which responds to the client with ACK.
+- Good for fault tolerance and splitting workload but not so good for data locality.
+- Gives better throughput than Primary-Backup replication scheme because read and writes are handled by different nodes.
+- Most optimal workload for chain replication is 85% reads and 15% writes.
+- Write latency is inversly proportional to the number of nodes in the chain.
+
+> Refer: [Chain Replication for Supporting High Throughput and Availability](https://www.cs.cornell.edu/home/rvr/papers/OSDI04.pdf) <!-- @utk: TOREAD -->
