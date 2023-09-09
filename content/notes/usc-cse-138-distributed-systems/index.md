@@ -346,3 +346,50 @@ the other nodes and finally is written to the tail node which responds to the cl
     - Distributed Mututal Exclusion
     - Distributed transaction commit
     - etc...
+- Properties that consensus algorithms _try_ to satisfy:
+    - Termination: Each correct process eventually decides on a value.
+    - Agreement: All correct processes decide on the same value.
+    - Validity/Integrity/Non-triviality: The agreed upon value must be one of the proposed values.
+- No consensus algorithm can satisfy all three properties (proved in 1983 in the FLP paper) in an asynchronous network model and crash-fault model.
+    - **Paxos** chooses agreement and validity while compromises termination.
+
+> Refer: [Impossibility of Distributed Consensus with One Faulty Process](https://groups.csail.mit.edu/tds/papers/Lynch/jacm85.pdf) <!-- @utk: TOREAD -->
+
+### Paxos
+- There are 3 roles for processes
+    1. Proposer - Proposes values
+    2. Acceptor - Contributes to choosing from among the proposed values
+    3. Learner - Learns the agreed upon value
+- One process could take on multiple roles.
+- Paxos Node
+    - Any node that plays any role.
+    - Must be able to persist data.
+    - All the nodes need to know how many nodes is a majority of acceptors.
+- Example:
+    - Paxos Phase 1
+        - Proposer
+            - Send a `Prepare(n)` messge to (at least) a majority of acceptors.
+            - `n` must be
+                - Unique (globally).
+                - Higher than any proposal number that this proposer has used before.
+        - Acceptor:
+            - On receiving a `Prepare(n)` message
+                - Ignores the request if has already promised to ignore the requests with that proposal number, else promises now.
+                - Replies with `Promise(n)` if makes a promises. Which implies that the acceptor is promising to ignore any request
+                that comes with proposal number lower than `n`.
+    - Paxos Phase 2: Proposer has received `Promise(n)` from a majority of acceptors (for some `n`)
+        - Proposer
+            - Send an `Accept(n, val)` message to (at least) a majority of acceptors, where
+                - `n` is the proposal number that was promised.
+                - `val` is the actual value it wants to propose.
+        - Acceptor
+            - On receiving an `Accept(n, val)`
+                - Ignores if has already promised to ignore requests with the proposal number or else replies with `Accepted(n, val)` and also sends
+                that message to other learners.
+    - Run:
+        {{< svgx src="paxos-run-example.svg" class="component-svgx" >}}
+
+> Refer: [The Part-Time Parliament](https://www.microsoft.com/en-us/research/uploads/prod/2016/12/The-Part-Time-Parliament.pdf) <!-- @utk: TOREAD -->
+
+> Refer: [Paxos Made Simple](https://lamport.azurewebsites.net/pubs/paxos-simple.pdf) <!-- @utk: TOREAD -->
+
