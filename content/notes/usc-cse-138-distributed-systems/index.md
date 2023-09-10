@@ -389,7 +389,47 @@ the other nodes and finally is written to the tail node which responds to the cl
     - Run:
         {{< svgx src="paxos-run-example.svg" class="component-svgx" >}}
 
+- Multi-Paxos
+    - Used for deciding a sequence of values.
+    - The basic idea is that a proposer can do Paxos phase 1 once and then keep on doing Paxos phase 2 (with the same proposal number) for as
+    long as no other proposer comes in with a higher proposal number. The hope here is that new proposers won't show up that often and the
+    system can work in harmony.
+    - Once a new proposer with higher proposal number shows up, multi-paxos degrades to simple paxos again until Paxos phase 2 is started in loop
+    again.
+- Fault Tolerance
+    - Can tolerate failures of \\(\lfloor \frac{n}{2} \rfloor\\) (minority) acceptors.
+        - \\(2f + 1\\) acceptors will be needed to tolerate failure of \\(f\\) acceptors.
+    - Paxos does OK under omission faults. It might not terminate but it anyway compromises termination.
+
+- Other consensus algorithms
+    1. VSR (Viewstamped Replication)
+    2. ZAB (Zookeeper Atomic Broadcast)
+    3. Raft
+
 > Refer: [The Part-Time Parliament](https://www.microsoft.com/en-us/research/uploads/prod/2016/12/The-Part-Time-Parliament.pdf) <!-- @utk: TOREAD -->
 
 > Refer: [Paxos Made Simple](https://lamport.azurewebsites.net/pubs/paxos-simple.pdf) <!-- @utk: TOREAD -->
 
+> Refer: [Paxos Made Live: An Engineering Perspective](https://courses.cs.vt.edu/~cs5204/fall08-kafura/Papers/FaultTolerance/Paxos-Chubby.pdf) <!-- @utk: TOREAD -->
+
+> Refer: [Zab: High Peformance Broadcast for Primary-Backup Systems](https://marcoserafini.github.io/papers/zab.pdf) <!-- @utk: TOREAD -->
+
+> Refer: [In Search of an Understandable Consensus Algorithm (Raft)](https://raft.github.io/raft.pdf) <!-- @utk: TOREAD -->
+
+> Refer: [Viewstamped Replication Revisisted](https://www.pmg.csail.mit.edu/papers/vr-revisited.pdf) <!-- @utk: TOREAD -->
+
+> Refer: [Vive La Difference: Paxos vs Viewstamped Replication vs Zab](https://www.cs.cornell.edu/fbs/publications/vivaLaDifference.pdf) <!-- @utk: TOREAD -->
+
+> Refer: [Total Order Broadcast and Multicast Algorithms: Taxonomy and Survey](https://csis.pace.edu/~marchese/CS865/Papers/defago_200356.pdf) <!-- @utk: TOREAD -->
+
+## Active vs Passive Replication
+- Both Primary-Backup and Chain Replication can be used to implement active/passive replication.
+- Active Replication
+    - Execute an operation on every replica.
+    - Better if state update is large while the operation can be and will be smaller.
+    - Operation needs to be deterministic or else every replica will end up with different state.
+    - Also called **state machine replication**.
+    - Consensus algorithms can be used to implement this, Paxos Made Simple paper talks about this as well.
+- Passive Replication
+    - Replicate the final state (after runnign the op against itself) on every replica instead of running the operation against each replica.
+    - Better if state update is expensive, in that case, it can be done only on the primary and then the final state can be propagated.
