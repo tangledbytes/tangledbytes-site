@@ -433,3 +433,11 @@ the other nodes and finally is written to the tail node which responds to the cl
 - Passive Replication
     - Replicate the final state (after runnign the op against itself) on every replica instead of running the operation against each replica.
     - Better if state update is expensive, in that case, it can be done only on the primary and then the final state can be propagated.
+
+## Eventual Consistency
+- Reminder: If you want to be fault tolerant and strong consistency then you will need consensus sooner or later.
+- Informally defined as replica eventually agreeing if clients stop submitting updates.
+- Is a liveness property.
+- <amrk>Other consistency guarantees are actually safety properties.</mark>
+- **Strong Convergence**: Replicas that have delivered the same set of updates have equivalent state.
+- **Strong eventual consistency**: Strong Convergence (safety property) + Eventual Consistency (liveness property).
