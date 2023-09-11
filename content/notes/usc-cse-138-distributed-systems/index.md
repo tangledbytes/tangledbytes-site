@@ -441,3 +441,9 @@ the other nodes and finally is written to the tail node which responds to the cl
 - <amrk>Other consistency guarantees are actually safety properties.</mark>
 - **Strong Convergence**: Replicas that have delivered the same set of updates have equivalent state.
 - **Strong eventual consistency**: Strong Convergence (safety property) + Eventual Consistency (liveness property).
+
+## CAP
+- Consistency, Availability, Partition Tolerance.
+- Partitions are unavoidable.
+- Cannot choose consistency and completely ignore availability because these are merely tradeoffs.
+
