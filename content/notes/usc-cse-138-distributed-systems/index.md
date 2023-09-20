@@ -447,3 +447,15 @@ the other nodes and finally is written to the tail node which responds to the cl
 - Partitions are unavoidable.
 - Cannot choose consistency and completely ignore availability because these are merely tradeoffs.
 
+## Dynamo: Amazon's Highly Avaialable Key-value Store
+- Covered in the course but will take notes in a separate section dedicated to Dynamo paper. <!-- @utk: TODO -->
+
+## Quorum Consistency
+- Quorum systems allow configuring the number of replicas that the client needs to talk to.
+    - `N` - Number of replicas.
+    - `W` - Write quorum - how many replicas have to acknowledge a write operation.
+    - `R` - Read quorum - how many replicas have to acknowledge a read operation.
+- **ROWA (Read-one-Writa-all)**
+    - `W = N; R = 1`
+    - Doesn't necessarily give strong consistency.
+- \\(R + W > N\\) ensures that read quorum will have intersect with the write quorums.
