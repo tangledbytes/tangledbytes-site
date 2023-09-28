@@ -459,3 +459,25 @@ the other nodes and finally is written to the tail node which responds to the cl
     - `W = N; R = 1`
     - Doesn't necessarily give strong consistency.
 - \\(R + W > N\\) ensures that read quorum will have intersect with the write quorums.
+
+## Sharding / Data Partitioning
+- Allows to store more data that can be stored on a single node.
+- Allows for more throughput.
+- Good sharding strategy ingredients
+    - Avoid hotspots
+- \\(\frac{K}{N}\\) (where \\(K\\) is the total number of keys and \\(N\\) is the total number of nodes) is the minimum movement possible
+to get an even split.
+
+### Consistent Hashing
+- Gives us the minimum data movement.
+- The basic idea
+    - Imagine the nodes being arranged in a ring such that each node has a value assigned to themselves.
+    - Hash the items and place the item on the node whose value is just greater than the hashed value of the item 
+    itself (when moving in clock-wise direction).
+    - When a node is added, the items from the next node whose hashed value is lesser than the value of the newly added node should be moved
+    to the newly added node.
+    - If a node dies or is removed from the ring, then the next node in the ring (clockwise) needs to hold all the data being held by the
+    dead node.
+- One physical node can be presented as multiple virtual nodes. This allows for a better balancing as well as can account for nodes which have more
+compute/storage.
+- > It seems that the node should NOT be added if the ring is already stressed as the data migration might make things worse?
