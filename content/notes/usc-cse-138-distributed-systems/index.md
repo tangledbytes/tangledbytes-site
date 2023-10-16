@@ -481,3 +481,19 @@ to get an even split.
 - One physical node can be presented as multiple virtual nodes. This allows for a better balancing as well as can account for nodes which have more
 compute/storage.
 - > It seems that the node should NOT be added if the ring is already stressed as the data migration might make things worse?
+
+## Online vs Offline systems
+
+- Online
+    - Wait for client requests and try to handle them quickly
+    - Low latency and availability often prioritized
+    - Examples: Databases, web servers, caches etc
+- Offline
+    - Also called batch processing systems
+    - Process LOTS of data
+    - High throughput is the requirement, latency is not
+    - MapReduce is a classic example
+- Streaming sytems
+    - Kind of a hybrid between online and offline systems.
+    - Fairly new
+
