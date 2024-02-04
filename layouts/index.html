@@ -8,8 +8,8 @@
     </section>
     <section>
       <h2>Blogs</h2>
-      {{ $notes := where .Site.RegularPages "Section" "blogs" }}
-      {{ partial "summary-list" $notes }}
+      {{ $blogs := where .Site.RegularPages "Section" "blogs" }}
+      {{ partial "summary-list" $blogs }}
     </section>
   </div>
 {{ end }}
